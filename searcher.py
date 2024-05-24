@@ -85,7 +85,7 @@ def search_modules(modules, grep_filter=None, output_file="module_search_results
         if not create_install_file:    
             unique_dependencies = set(global_dependency_list)  # Set to find unique elements
             print(f"Total unique dependencies found: {len(unique_dependencies)}")
-        return unique_dependencies
+            return unique_dependencies
 
             
 def ask_user_which_module(list_of_modules, path_filter=None):
