@@ -1,4 +1,4 @@
-def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", dry_run=True):
+def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", dry_run=False):
     """
     Generates a Slurm script to load and install modules using EasyBuild with specified eb files,
     with an option for a dry run to simulate installations using GNU Parallel.
@@ -29,6 +29,8 @@ def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", d
         file.write("#SBATCH --cpus-per-task=4\n")
         file.write("\n")
 
+        file.write("module purge\n")
+        file.write("export EASYBUILD_JOB_BACKEND=Slurm\n")
         file.write("print_error_and_exit() { echo \"***ERROR*** $*\"; exit 1; }\n")
         file.write("hash parallel 2>/dev/null && test $? -eq 0 || print_error_and_exit \"Parallel is not installed on the system\"\n")
         file.write("\n")
@@ -38,13 +40,18 @@ def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", d
         file.write("mkdir -p logs\n")
         file.write("\n")
 
-        command = "eb {} --robot -D" if dry_run else "eb {} --robot -j $SLURM_CPUS_PER_TASK"
-        srun_command = "srun --exclusive -n1 -c $SLURM_CPUS_PER_TASK --cpu-bind=cores"
+        command = "eb {} --robot --job" if not dry_run else "eb {} --robot -D"
+
+        # Optionally specify the number of cores per job and max walltime
+        job_cores = "4"  # Example core count, adjust as needed
+        max_walltime = "2"  # Example maximum walltime in hours
+
+        srun_command = "srun -n1 "
         verbose_flag = "--verbose"
 
-        file.write(f"parallel --delay 0.2 -j ${{SLURM_NTASKS_PER_NODE}} {verbose_flag} --joblog eb-joblog.log ")
-        file.write(f"\"{srun_command} {command} > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
-        file.write("\necho 'EasyBuild installations completed'\n")
+        file.write(f"parallel -j $SLURM_CPUS_PER_TASK {verbose_flag} --joblog eb-joblog.log ")
+        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
+        file.write("\necho 'Tasks are all runing now sq to see them'\n")
 
     print(f"Slurm script generated: {script_filename}")
 
@@ -67,5 +74,5 @@ if __name__ == "__main__":
     print("Running as a standalone script...")
     # Example usage
     #eb_files = read_eb_paths("module_search_results.txt")
-    eb_files = read_eb_paths("all_module_search_results3Back.txt")
+    eb_files = read_eb_paths("all_module_search_results3Back_copy.txt")
     generate_slurm_script(eb_files)
