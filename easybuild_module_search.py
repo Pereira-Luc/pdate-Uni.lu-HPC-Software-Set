@@ -1,32 +1,44 @@
 import subprocess
+from typing import TextIO, List
 
 
-create_install_file = False # Set to True to create a file with the installation paths only false to get all the dependencies and count them
+# Select "foss" to install foss toolchain 2023a
+# Select "intel" to install foss toolchain 2023a
+toolchain = "foss"
+
+# Set to True to create a file with the installation paths only
+# Set to False to get all the dependencies and count them
+create_install_file = False
 
 
-def search_modules(modules, grep_filter=None, output_file="module_search_results.txt"):
+def search_modules(modules: List[str],
+                   grep_filter: str = None,
+                   output_file="module_search_results.txt"):
     """
     Searches for specified modules using EasyBuild, optionally filters the output,
     and saves the results to a file.
 
     Args:
-    modules (list): List of module names to search for.
+    modules (List[str]): List of module names to search for.
     toolchain (str): Toolchain version to use in the search.
     grep_filter (str, optional): Filter term to use with grep. Defaults to None.
     output_file (str): Filename to save the output results.
     """
+    # Initialize a list to hold dependencies for all modules
     global_dependency_list = []
-    
+
+    # Open the output file for writing
     with open(output_file, "w") as file:
         for module in modules:
-            print("=====================================")
+            print("==================================================")
             print(f"Searching for {module}...")
+
+            # Construct the command to search for the module with EasyBuild
             command = f"eb --search '{module}-*'"
-            
-            # print(f"Executing command: {command}")
+
+            # If a grep filter is specified, add it to the command
             if grep_filter:
                 command += f" | grep '{grep_filter}'"
-                # print(f"Filtering results with: {grep_filter}")
             
             # Execute the command
             process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -34,144 +46,166 @@ def search_modules(modules, grep_filter=None, output_file="module_search_results
 
             # Write the results to file
             if not create_install_file:
-                file.write(f"Search results for {module}:\n")
+                file.write(f"Search results for {module}:")
                 file.write(stdout.decode())
             
-            # convert stdout to a list of lines
+            # Convert stdout to a list of lines
             lines = stdout.decode().split("\n")
-            print(f"Found {len(lines) - 1} versions of {module}.")
-            
-            if (len(lines) - 1)  == 0:
+            if lines[-1] == '':
+                lines = lines[:-1]
+
+            # If no versions of the module are found
+            if len(lines) == 0:
                 print(f"No versions of {module} found.")
+
                 if not create_install_file:
                     file.write("No versions found.\n")
                     file.write("\n" + "-"*40 + "\n")
-                print("=====================================")
-                print()
+
+                print("==================================================\n")
+
                 continue
-        
+
+            # By default, select the first module found
             selected_module = lines[0]
-            
-            if len(lines) > 2:
-                print(f"Found {len(lines) - 1} versions of {module}.")
-                # Ask the user to choose a module
+
+            # If more than one version is found, let the user choose
+            if len(lines) > 1:
+                print(f"Found {len(lines)} versions of {module}.\n")
+
                 selected_module = ask_user_which_module(lines, path_filter=module)
+
                 if selected_module is None:
-                    print("No module selected")
-                    print("=====================================")
-                    print()
+                    print("No module selected.")
+                    print("==================================================\n")
+
                     continue
-            
+
+            # Extract the module name from the selected line
             selected_module = selected_module.split(" ")[-1]
             file.write(selected_module+"\n")
-            
-            print(f"Selected module: {selected_module}")
-            
-            if stderr:
-                print("Errors found:")
-                if not create_install_file:
-                    file.write("Errors:\n")
-                    file.write(selected_module)
-            
+            print(f"\nSelected module: {selected_module}\n")
+
             # List dependencies for each found module
             if not create_install_file:
                 dependencies = list_dependencies(selected_module, file)
                 global_dependency_list.extend(dependencies)
-            print("=====================================")
-            print()
-            
-            
-            #file.write("\n" + "-"*40 + "\n")
+
+            print("==================================================\n")
+
+        # Find unique dependencies from the global list and return them
         if not create_install_file:    
-            unique_dependencies = set(global_dependency_list)  # Set to find unique elements
+            unique_dependencies = set(global_dependency_list)
             print(f"Total unique dependencies found: {len(unique_dependencies)}")
+
             return unique_dependencies
 
-            
-def ask_user_which_module(list_of_modules, path_filter=None):
+
+def ask_user_which_module(list_of_modules: List[str],
+                          path_filter: str = None) -> str:
     """
     Ask the user to choose a module from a list of modules.
-    
+
     Args:
-        list_of_modules (list): List of module names to choose from.
-    
+        list_of_modules (List[str]): List of module names to choose from.
+        path_filter (str, optional): Optional filter term to refine the module paths. Defaults to None.
+
     Returns:
-        str: The selected module path
+        str: The selected module path.
     """
-    
     while True:
-        print("Please select a module:")
+
+        print("Please select a module: ")
+
+        # Display the list of modules for the user to choose from
         for i, module in enumerate(list_of_modules):
-            
+            # If a path filter is specified, modify the module path accordingly
             if path_filter:
                 module = module.split(path_filter)[-1]
                 module = path_filter + module
             
             print(f"{i+1}. {module}")
-        
-        choice = input("Enter the number of the module 0 for none: ")
+
+        # Prompt the user to enter their choice
+        choice = input("Enter the number of the module or 0 for none: ")
+
         try:
             choice = int(choice)
-            
+
+            # If the user chooses 0, exit the function
             if choice == 0:
                 print("Exiting...")
                 return None
-            
+
+            # Check if the choice is within the valid range
             if choice < 1 or choice > len(list_of_modules):
                 print("Invalid choice. Please try again.")
                 continue
+
+        # Handle invalid choice
         except ValueError:
             print("Invalid choice. Please try again.")
             continue
-        
+
+        # Return the selected module path
         return list_of_modules[choice - 1]
             
 
-def list_dependencies(module, file):
+def list_dependencies(module: str,
+                      file: TextIO) -> List[str]:
     """
     List dependencies of found modules using EasyBuild's dry-run option.
 
     Args:
     module (str): Module name to list dependencies for.
-    file (file object): File object to write dependencies to.
+    file (TextIO): File object to write dependencies to.
 
     Returns:
-    list: List of dependencies for the module.
+    List[str]: List of dependencies for the module.
     """
     print(f"Listing dependencies for {module}...")
-    command = f"eb '{module}' -D"  # Ensure using dry-run option
 
+    # Construct the command to list dependencies with EasyBuild's dry-run option
+    command = f"eb '{module}' -D"
+
+    # Execute the command
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
+    # If errors occur during the listing process, write them to the file and return an empty list
     if stderr:
         if not create_install_file:
             file.write("Errors in dependencies listing:\n")
             file.write(stderr.decode())
+
         return []
 
     # Extracting dependencies
     dependencies = []
+
+    # Write dependency details to the file for dry-run
     if not create_install_file:
         file.write(f"Dependency details for {module}:\n")
 
+    # Iterate through each line of the stdout and extract dependencies
     for line in stdout.decode().split('\n'):
         if line.strip().startswith('*'):
-            # dependancy name is inside the ()
-            dependencie = line.split('(')[1].split(')')[0]
-            dependencies.append(dependencie)
-         
+            dependencies = line.split('(')[1].split(')')[0]
+            dependencies.append(dependencies)
+
+    # Write dependency details to the file for dry-run
     if not create_install_file:          
         file.write("\n".join(dependencies))    
     
     return dependencies
 
-def list_all_modules():
+
+def list_all_modules() -> List[str]:
     """
     Uses the 'module avail' command to list all available modules and extracts their names.
 
     Returns:
-    list: A list containing the names of all modules available.
+    List[str]: A list containing the names of all modules available.
     """
     try:
         # Execute the 'module avail' command
@@ -181,40 +215,52 @@ def list_all_modules():
         
         print("Getting all modules...")
 
+        # Combine stdout and stderr into a single string
         output = stdout.decode() + stderr.decode()
+
         # Initialize a list to store module names
         module_names = []
 
         # Process each line in the output
         for line in output.split('\n'):
+            # Check if the line is not empty and contains a '/'
             if line.strip() and '/' in line:
                 parts = line.split('/')
+
                 # Assuming the 'module' is the second segment in the path 'smth/module/...'
                 if len(parts) > 1:
                     module_name = parts[1]  # Get the module name which is the second part of the path
                     module_names.append(module_name)
 
+        # Remove duplicates by converting to a set and back to a list
         module_list = list(set(module_names))
         print(f"Total modules found: {len(module_list)}")
-        return module_list 
+        return module_list
 
+    # Handle any errors that occur during the process
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
 
 
 if __name__ == "__main__":
-    modules = ["GROMACS", "ABAQUS", "OpenFOAM","ParaView","gnuplot", "Julia", "Rust", "Python", "TensorFlow", "PyTorch", "PyTorch-Lightning", "Spark", "Armadillo", "GDAL","GSL", "Eigen"]
-    grep_filter = "foss-2023a" 
+    # List of modules to search for
+    modules = ["GROMACS", "ABAQUS", "OpenFOAM",
+               "ParaView", "gnuplot",
+               "Julia", "Rust", "Python",
+               "TensorFlow", "PyTorch", "PyTorch-Lightning", "Spark",
+               "Armadillo", "GDAL", "GSL", "Eigen"]
+
+    # Grep filter to use for filtering search results
+    grep_filter = f"{toolchain}-2023a"
+
+    # Output file to save search results
     output_file = "module_search_results.txt"
-    #search_modules(modules, grep_filter, output_file=output_file)
-    #print(f"Search completed. Results are saved in {output_file}.")
-    
+
+    # Get a list of all available modules
     all_modules = list_all_modules()
-    
-    search_modules(all_modules, grep_filter, output_file="all_module_search_results3.txt")
-    print(f"Search completed. Results are saved in all_module_search_results2.txt.")
-    
-    
-    # First pass with big software list now we can get all ther rest of the dependencies with mdoule avail command
-    
+
+    # Search for the specified modules using grep filter and save results to the output file
+    search_modules(all_modules, grep_filter, output_file)
+
+    print(f"Search completed. Results are saved in {output_file}.")
