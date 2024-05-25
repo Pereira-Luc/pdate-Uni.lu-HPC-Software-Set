@@ -8,7 +8,7 @@ toolchain = "foss"
 
 # Set to True to create a file with the installation paths only
 # Set to False to get all the dependencies and count them
-create_install_file = False
+create_install_file = True
 
 
 def search_modules(modules: List[str],
@@ -85,6 +85,14 @@ def search_modules(modules: List[str],
             selected_module = selected_module.split(" ")[-1]
             file.write(selected_module+"\n")
             print(f"\nSelected module: {selected_module}\n")
+
+            # Print errors if found
+            if stderr:
+                print("Errors found.")
+
+                if not create_install_file:
+                    file.write("Errors:\n")
+                    file.write(selected_module)
 
             # List dependencies for each found module
             if not create_install_file:
@@ -190,8 +198,8 @@ def list_dependencies(module: str,
     # Iterate through each line of the stdout and extract dependencies
     for line in stdout.decode().split('\n'):
         if line.strip().startswith('*'):
-            dependencies = line.split('(')[1].split(')')[0]
-            dependencies.append(dependencies)
+            dependency = line.split('(')[1].split(')')[0]
+            dependencies.append(dependency)
 
     # Write dependency details to the file for dry-run
     if not create_install_file:          
