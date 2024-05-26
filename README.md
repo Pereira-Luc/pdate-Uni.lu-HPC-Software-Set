@@ -114,6 +114,17 @@ if command -v module >/dev/null 2>&1 ; then
 fi
 ```
 
+## Preparation of the environment
+1. Before running the main scripts, make sure to load install foss-2023a, intel-2023a this is done separately to prevent conflicts:
+```
+sbatch InstallToolChains.sh
+```
+This script will install the toolchains and dependencies needed it will create many jobs that you can monitor with `squeue -u $USER`.
+
+Once all the jobs are done you can proceed with the installation of the modules.
+
+WARNING: DO NOT FORCE KILL THE JOBS, THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
+
 ## Installation of modules with toolchain `foss-2023a`, `intel-2023a` and `independent`
 
 1. We are going to start with the installation of the `foss-2023` toolchain first.\
@@ -144,6 +155,18 @@ sbatch install_modules_foss.sh
    [`easybuild_create_slurm.py`](easybuild_create_slurm.py)  to `intel` or `independent` and repeat the same commands. \
    The output file name is now going to be `module_search_results_<toolchain>.txt`, the slurm script `install_modules_<toolchain>.sh`
    and the log folder `eb_logs_<toolchain>`.
+
+  WARNING: DO NOT FORCE KILL THE JOBS, THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
+
+  This script will create many .out files that will have any errors that may have occurred during the installation process. Don't remove these files as they are useful for debugging and are required for validation.
+
+## Validation
+  Now that all the files are installed you can validate the installation by running the following command:
+  ```
+  python validator.py
+  ```
+
+  This script will check if all the modules are installed correctly and will output any errors that may have occurred during the installation process.
 
 ## Expected Output
 
