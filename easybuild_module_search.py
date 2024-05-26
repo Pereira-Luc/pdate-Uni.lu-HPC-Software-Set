@@ -34,7 +34,7 @@ def search_modules(modules: List[str],
             print(f"Searching for {module}...")
 
             # Construct the command to search for the module with EasyBuild
-            command = f"eb --search '{module}-*'"
+            command = f"eb --search '{module}.*'"
 
             # If a grep filter is specified, add it to the command
             if grep_filter:
@@ -84,7 +84,7 @@ def search_modules(modules: List[str],
             # Extract the module name from the selected line
             selected_module = selected_module.split(" ")[-1]
             file.write(selected_module+"\n")
-            print(f"\nSelected module: {selected_module}\n")
+            print(f"\nSelected module: {selected_module}")
 
             # Print errors if found
             if stderr:
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     grep_filter = f"{toolchain}-2023a"
 
     # Output file to save search results
-    output_file = "module_search_results.txt"
+    output_file = f"module_search_results_{toolchain}.txt"
 
     # Get a list of all available modules
     all_modules = list_all_modules()
