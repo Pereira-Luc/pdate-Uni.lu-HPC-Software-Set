@@ -50,11 +50,6 @@ def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", d
         
         file.write("print_error_and_exit() { echo \"***ERROR*** $*\"; exit 1; }\n")
         
-        # Check if GNU Parallel is installed
-        file.write("# Check if GNU Parallel is installed\n")
-        file.write("hash parallel 2>/dev/null && test $? -eq 0 || print_error_and_exit \"Parallel is not installed on the system\"\n")
-        file.write("\n")
-        
          # Load the EasyBuild module
         file.write("# Load the EasyBuild module\n")
         file.write("module load tools/EasyBuild/4.9.1\n")
@@ -64,13 +59,13 @@ def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", d
         file.write("mkdir -p logs\n")
         file.write("\n")
 
-        command = "eb {} --robot --job" if not dry_run else "eb {} --robot -D"
+        command = "eb ${EBFILES[@]} --robot --job" if not dry_run else "eb ${EBFILES[@]} --robot -D"
 
-        srun_command = "srun -n1 "
-        verbose_flag = "--verbose"
-
-        file.write(f"parallel -j 16 {verbose_flag} --joblog eb-joblog.log ")
-        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=CUDA > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
+        file.write(f"COMMAND='{command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=CUDA > logs/eb-log-{{#}}.log'\n")
+        file.write("echo \"Running command: $COMMAND\"\n")
+        file.write("\n")
+        file.write("eval $COMMAND \n")
+        
         file.write("\necho 'Tasks are all runing now sq to see them'\n")
 
     print(f"Slurm script generated: {script_filename}")
