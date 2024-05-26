@@ -2,15 +2,19 @@
 
 ## Overview
 
-The EasyBuild Module Tool consists of two Python scripts that allow users to search for specified software modules and 
+The EasyBuild Module Tool consists of four Python scripts that allow users to search for specified software modules and 
 toolchains (`foss-2023a`, `intel-2023a` and `independent`) using EasyBuild and to install them on the Uni.lu cluster. 
 
+- [**`easybuild_install_toolchains.sh`**](easybuild_install_toolchains.sh): \
+  This batch script installs the necessary toolchains for the modules.
 - [**`easybuild_module_search.py`**](easybuild_module_search.py): \
   This script provides options to either create a file with installation paths or retrieve all dependencies and count 
   them for debugging purposes.
 - [**`easybuild_create_slurm.py`**](easybuild_create_slurm.py): \
   This script creates a batch script according to the specified and found modules from the previous search, which can 
   then be used to install them or try a dry-run first.
+- [**`easybuild_validation.py`**](easybuild_validation.py): \
+  This script looks at the modules and validates the whole installation.
 
 ## Features
 
@@ -30,12 +34,10 @@ toolchains (`foss-2023a`, `intel-2023a` and `independent`) using EasyBuild and t
   - `GDAL` 
   - `GSL` 
   - `Eigen`
-  - `ABAQUS` 
-  - `R` 
-  - `gmsh` 
+  - `ABAQUS`
+  - `R`
   - `Keras` 
-  - `Horovod` 
-  - `Neper` 
+  - `Horovod`
   - `trimesh`
 - Filter search results with a specified toolchain version:
   - `foss-2023a`
@@ -44,15 +46,16 @@ toolchains (`foss-2023a`, `intel-2023a` and `independent`) using EasyBuild and t
 - Choose between creating a file with installation paths or retrieving all modules and dependencies for debugging purposes.
 - Create a batch script based on the found modules to either install the modules or use a dry-run first.
 - Install all modules with the specified toolchain on the Uni.lu cluster.
+- Validate the installation for its correctness.
 
 ## Options
 
 You can change certain parameters at the beginning of the file [`easybuild_module_search.py`](easybuild_module_search.py):
 
 - `toolchain`: \
-  Toolchain version to use in the search. Either set to `foss` for `foss-2023a`, `intel` for `intel-2023a` or 
+  Toolchain version to use in the search. Either set to `intel` for `intel-2023a`, `foss` for `foss-2023a` or 
   `independent` for some modules without specific toolchain versions. \
-  Default: `foss`
+  Default: `intel`
 - `create_install_file`: \
   Set to `True` to create a file with installation paths or `False` to retrieve all dependencies for debugging purposes.\
   Default: `True`
@@ -60,18 +63,23 @@ You can change certain parameters at the beginning of the file [`easybuild_modul
 Similarly, you are able to change some arguments at the top of [`easybuild_create_slurm.py`](easybuild_create_slurm.py):
 
 - `toolchain`: \
-  Toolchain version to use for the installation. Either set to `foss` for `foss-2023a`, `intel` for `intel-2023a` or 
+  Toolchain version to use for the installation. Either set to `intel` for `intel-2023a`, `foss` for `foss-2023a` or 
   `independent` for some modules without specific toolchain versions. \
-  Default: `foss`
+  Default: `intel`
 - `job_cores`: \
   Number of CPU cores per module installation job. \
-  Default: `4`
+  Default: `8`
 - `max_walltime`: \
   Max wall time in hours per module installation job. \
-  Default: `2`
+  Default: `5`
 - `dry_run`: \
   Set to `True` to use an EasyBuild dry run for debugging purposes or set to `False` to install modules on the cluster. \
   Default: `False`
+
+In the file [`easybuild_validation.py`](easybuild_validation.py) you can set:
+- `log_directory`: \
+  Path to the directory containing the log files for the validation part. \
+  Default: `./eb_logs_intel`
 
 ## Connect to the Aion-cluster
 
@@ -114,20 +122,22 @@ if command -v module >/dev/null 2>&1 ; then
 fi
 ```
 
-## Preparation of the environment
-1. Before running the main scripts, make sure to load install foss-2023a, intel-2023a this is done separately to prevent conflicts:
+## Preparation of the environment with toolchain `intel-2023a`
+1. Before running the main scripts, make sure to install the `intel-2023a` toolchain. \
+   For the reproducibility session it is sufficient to only install `intel-2023a`. \
+   The installation is done separately to prevent conflicts by running:
 ```
-sbatch InstallToolChains.sh
+sbatch easybuild_install_toolchains.sh
 ```
-This script will install the toolchains and dependencies needed it will create many jobs that you can monitor with `squeue -u $USER`.
-
+This script will install the toolchains and dependencies needed and create many jobs that you can monitor with `sq`.
+   
 Once all the jobs are done you can proceed with the installation of the modules.
 
-WARNING: DO NOT FORCE KILL THE JOBS, THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
+WARNING: DO NOT FORCE KILL THE JOBS! THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
 
-## Installation of modules with toolchain `foss-2023a`, `intel-2023a` and `independent`
+## Installation of modules with toolchain `intel-2023a`
 
-1. We are going to start with the installation of the `foss-2023` toolchain first.\
+1. We are going to start with the installation of the `intel-2023` toolchain first.\
    Run the module search script using the following command 
    (depending on your python configuration you may need to use `python3` for the following sections):
 ```
@@ -137,7 +147,7 @@ python easybuild_module_search.py
 2. Follow the on-screen prompts to specify the desired version of modules that have multiple versions available. 
    For our purposes you can choose each version arbitrarily.
 
-3. Once the search is complete, the results will be saved to the output file `module_search_results_foss.txt`.
+3. Once the search is complete, the results will be saved to the output file `module_search_results_intel.txt`.
 
 4. Run the slurm creation script using the following command:
 ```
@@ -146,24 +156,24 @@ python easybuild_create_slurm.py
 
 5. Run the newly created slurm script on the cluster to install the found modules using the following command:
 ```
-sbatch install_modules_foss.sh
+sbatch install_modules_intel.sh
 ```
-   This is going to create multiple batch scripts, installing all the modules and their dependencies. The log files can be found in the folder `eb_logs_foss`.
+   This is going to create multiple batch scripts, that install all the modules and their dependencies. Use `sq` to view them. \
+   The log files can be found in the folder `eb_logs_intel`.
 
-6. After this is done, we can proceed with the installation of the modules with the toolchaín `intel-2023a` and `independent`. \
-   Change the toolchain version at the beginning of [`easybuild_module_search.py`](easybuild_module_search.py) and 
-   [`easybuild_create_slurm.py`](easybuild_create_slurm.py)  to `intel` or `independent` and repeat the same commands. \
-   The output file name is now going to be `module_search_results_<toolchain>.txt`, the slurm script `install_modules_<toolchain>.sh`
-   and the log folder `eb_logs_<toolchain>`.
+  After this is done, we can proceed with the validation of the modules. 
 
-  WARNING: DO NOT FORCE KILL THE JOBS, THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
+  WARNING: DO NOT FORCE KILL THE JOBS! THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
 
-  This script will create many .out files that will have any errors that may have occurred during the installation process. Don't remove these files as they are useful for debugging and are required for validation.
+  This script will create many .out files that will have any errors that may have occurred during the installation process. 
+  Do not remove these files as they are useful for debugging and are required for validation.
 
 ## Validation
-  Now that all the files are installed you can validate the installation by running the following command:
+1. Now that all the files are installed you can validate the installation, but first you need to set your correct log directory path in 
+   [`easybuild_validation.py`](easybuild_validation.py).
+2. Afterwards, validate by running the following command:
   ```
-  python validator.py
+  python easybuild_validation.py
   ```
 
   This script will check if all the modules are installed correctly and will output any errors that may have occurred during the installation process.
@@ -172,6 +182,28 @@ sbatch install_modules_foss.sh
 
 Once everything is installed, you should be able to find all the new modules in your home directory by using `module`. 
 Due to multiple dependencies and the availability of the cluster nodes, this could take several hours.
+
+# END OF THE REPRODUCIBILITY SESSION
+
+## Installation with `foss-2023a` 
+
+1. You need to prepare the environment with toolchain `foss-2023a` by changing the version to `foss-2023a` in [`easybuild_install_toolchains.sh`](easybuild_install_toolchains.sh).
+2. Change the toolchain version at the beginning of [`easybuild_module_search.py`](easybuild_module_search.py) and 
+   [`easybuild_create_slurm.py`](easybuild_create_slurm.py)  to `foss`. \
+   The output file name is now going to be `module_search_results_foss.txt`, the slurm script `install_modules_foss.sh`
+   and the log folder `eb_logs_foss`.
+3. Do not forget to set the right log directory path in [`easybuild_validation.py`](easybuild_validation.py).
+4. Repeat the previous commands.
+
+## Installation with `independent`
+
+1. You do not need to prepare the environment for the independent modules.
+2. Change the toolchain version at the beginning of [`easybuild_module_search.py`](easybuild_module_search.py) and 
+   [`easybuild_create_slurm.py`](easybuild_create_slurm.py)  to `independent`. \
+   The output file name is now going to be `module_search_results_independent.txt`, the slurm script `install_modules_independent.sh`
+   and the log folder `eb_logs_independent`.
+3. Do not forget to set the right log directory path in [`easybuild_validation.py`](easybuild_validation.py).
+4. Repeat the previous commands.
 
 
 

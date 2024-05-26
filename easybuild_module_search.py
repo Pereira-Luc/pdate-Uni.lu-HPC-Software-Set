@@ -3,8 +3,9 @@ import sys
 from typing import TextIO, List
 
 
-# Select "foss" to install foss toolchain 2023a
-# Select "intel" to install foss toolchain 2023a
+# Set to "intel" to install intel toolchain 2023a
+# Set to "foss" to install foss toolchain 2023a
+# Set to "independent" to install some independent modules
 toolchain = "intel"
 
 # Set to True to create a file with the installation paths only
@@ -25,6 +26,16 @@ def search_modules(modules: List[str],
     grep_filter (str, optional): Filter term to use with grep. Defaults to None.
     output_file (str): Filename to save the output results.
     """
+    # Specify some modules without toolchain necessities
+    if toolchain is "independent":
+        with open(output_file, "w") as file:
+            file.write("Keras-2.4.3-fosscuda-2020b.eb")
+            file.write("Horovod-0.28.1-foss-2022a-CUDA-11.7.0-TensorFlow-2.11.0.eb")
+            file.write("R-4.2.1-foss-2022a.eb")
+            file.write("ABAQUS-2022.eb")
+
+        return
+
     # Initialize a list to hold dependencies for all modules
     global_dependency_list = []
 
@@ -253,8 +264,17 @@ def list_all_modules() -> List[str]:
 
 
 if __name__ == "__main__":
+    # List of modules to search for
+    modules = ["GROMACS", "ABAQUS", "OpenFOAM",
+               "ParaView", "gnuplot",
+               "Julia", "Rust", "Python",
+               "TensorFlow", "PyTorch", "PyTorch-Lightning", "Spark",
+               "Armadillo", "GDAL", "GSL", "Eigen"]
+
+    # Set toolchain version to 2023a
     postFix = "-2023a"
-    # check if EasyBuild is installed and loaded
+
+    # Check if EasyBuild is installed and loaded
     try:
         command = "eb --version"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -268,24 +288,17 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"An error occurred: {e}")
         exit(1)
-        
-    # first argument is the toolchain
+
+    # Ability to specify toolchain on command line too
+    # First argument should be the toolchain
     if len(sys.argv) > 1:
         toolchain = sys.argv[1]
-        if toolchain == "noFilter":
+        if toolchain == "independent":
             toolchain = ""
             postFix = ""
-        elif toolchain not in ["foss", "intel"]:
-            print("Invalid toolchain specified. Please select 'foss' or 'intel'. Exiting...")
+        elif toolchain not in ["foss", "intel", "independent"]:
+            print("Invalid toolchain specified. Please select 'foss', 'intel' or 'independent'. Exiting...")
             sys.exit(1)
-    
-    
-    # List of modules to search for
-    modules = ["GROMACS", "ABAQUS", "OpenFOAM",
-               "ParaView", "gnuplot",
-               "Julia", "Rust", "Python",
-               "TensorFlow", "PyTorch", "PyTorch-Lightning", "Spark",
-               "Armadillo", "GDAL", "GSL", "Eigen"]
 
     # Grep filter to use for filtering search results
     grep_filter = f"{toolchain}{postFix}"
