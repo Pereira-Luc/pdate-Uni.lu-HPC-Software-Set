@@ -6,10 +6,10 @@ from typing import List
 toolchain = "foss"
 
 # Specify the number of CPU cores per job
-job_cores = "4"
+job_cores = "8"
 
 # Specify the max wall time in hours
-max_walltime = "2"
+max_walltime = "5"
 
 # Set to True to use a dry run for debugging purposes
 # Set to False to install modules
@@ -44,11 +44,8 @@ def generate_slurm_script(eb_files: List[str],
         file.write(f"#SBATCH --output=install_eb_modules_{toolchain}_%j.out\n")
         file.write("#SBATCH --time=02:00:00\n")
         file.write("#SBATCH --partition=batch\n")
-        file.write("#SBATCH --nodes=1\n")
-        file.write("#SBATCH --exclusive\n")
         file.write("#SBATCH --mem=0\n")
-        file.write("#SBATCH --ntasks-per-node=1\n")
-        file.write("#SBATCH --cpus-per-task=4\n")
+
         file.write("\n")
 
         # Purge old modules and export system variable
@@ -90,8 +87,7 @@ def generate_slurm_script(eb_files: List[str],
         # Use GNU Parallel to run EasyBuild installations
         file.write("# Use GNU Parallel to run EasyBuild installations\n")
         file.write(f"parallel -j $SLURM_CPUS_PER_TASK {verbose_flag} --joblog eb_logs_{toolchain}/eb_joblog.log ")
-        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} "
-                   f"--job-max-walltime={max_walltime} --job-backend-config=slurm > eb_logs_{toolchain}/eb_log_{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
+        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=all > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
         file.write("\necho 'Tasks are all running. Use sq to see them.'\n")
 
     print(f"Slurm script generated: {script_filename}")
