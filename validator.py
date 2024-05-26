@@ -1,5 +1,6 @@
 import os
 import glob
+import sys
 
 def check_installation_logs(directory):
     """
@@ -69,6 +70,9 @@ def report_results(results):
 if __name__ == '__main__':
     # Path to the directory containing the log files
     log_directory = './'
+    
+    if (sys.argv[1] == '-d'):
+        log_directory = sys.argv[2]
 
     # Check the logs for errors
     installation_results = check_installation_logs(log_directory)
