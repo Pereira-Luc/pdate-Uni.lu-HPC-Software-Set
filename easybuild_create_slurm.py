@@ -87,7 +87,7 @@ def generate_slurm_script(eb_files: List[str],
         # Use GNU Parallel to run EasyBuild installations
         file.write("# Use GNU Parallel to run EasyBuild installations\n")
         file.write(f"parallel -j $SLURM_CPUS_PER_TASK {verbose_flag} --joblog eb_logs_{toolchain}/eb_joblog.log ")
-        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=all > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
+        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=CUDA > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
         file.write("\necho 'Tasks are all running. Use sq to see them.'\n")
 
     print(f"Slurm script generated: {script_filename}")
