@@ -29,6 +29,7 @@ def search_modules(modules: List[str],
     # Specify some modules without toolchain necessities
     if toolchain is "independent":
         with open(output_file, "w") as file:
+            file.write("trimesh-3.21.5-gfbf-2022b.eb")
             file.write("Keras-2.4.3-fosscuda-2020b.eb")
             file.write("Horovod-0.28.1-foss-2022a-CUDA-11.7.0-TensorFlow-2.11.0.eb")
             file.write("R-4.2.1-foss-2022a.eb")
