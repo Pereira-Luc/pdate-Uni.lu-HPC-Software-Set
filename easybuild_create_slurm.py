@@ -70,7 +70,7 @@ def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", d
         verbose_flag = "--verbose"
 
         file.write(f"parallel -j 16 {verbose_flag} --joblog eb-joblog.log ")
-        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=all > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
+        file.write(f"\"{srun_command} -c {job_cores} {command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=CUDA > logs/eb-log-{{#}}.log\" ::: \"${{EBFILES[@]}}\"\n")
         file.write("\necho 'Tasks are all runing now sq to see them'\n")
 
     print(f"Slurm script generated: {script_filename}")
