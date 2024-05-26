@@ -1,1 +1,4 @@
 Toolchain
+*.out
+logs
+eb_logs*
