@@ -1,10 +1,11 @@
 import subprocess
+import sys
 from typing import TextIO, List
 
 
 # Select "foss" to install foss toolchain 2023a
 # Select "intel" to install foss toolchain 2023a
-toolchain = "foss"
+toolchain = "intel"
 
 # Set to True to create a file with the installation paths only
 # Set to False to get all the dependencies and count them
@@ -252,6 +253,7 @@ def list_all_modules() -> List[str]:
 
 
 if __name__ == "__main__":
+    postFix = "-2023a"
     # check if EasyBuild is installed and loaded
     try:
         command = "eb --version"
@@ -266,6 +268,16 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"An error occurred: {e}")
         exit(1)
+        
+    # first argument is the toolchain
+    if len(sys.argv) > 1:
+        toolchain = sys.argv[1]
+        if toolchain == "noFilter":
+            toolchain = ""
+            postFix = ""
+        elif toolchain not in ["foss", "intel"]:
+            print("Invalid toolchain specified. Please select 'foss' or 'intel'. Exiting...")
+            sys.exit(1)
     
     
     # List of modules to search for
@@ -276,7 +288,7 @@ if __name__ == "__main__":
                "Armadillo", "GDAL", "GSL", "Eigen"]
 
     # Grep filter to use for filtering search results
-    grep_filter = f"{toolchain}-2023a"
+    grep_filter = f"{toolchain}{postFix}"
 
     # Output file to save search results
     output_file = f"module_search_results_{toolchain}.txt"

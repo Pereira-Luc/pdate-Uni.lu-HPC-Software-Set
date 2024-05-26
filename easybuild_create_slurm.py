@@ -3,7 +3,7 @@
 import sys
 
 
-toolchain = "foss"
+toolchain = "intel"
 
 # Specify the number of CPU cores per job
 job_cores = "8"
@@ -64,7 +64,7 @@ def generate_slurm_script(eb_files, script_filename="test_install_modules.sh", d
 
         command = "eb ${EBFILES[@]} --robot --job" if not dry_run else "eb ${EBFILES[@]} --robot -D"
 
-        file.write(f"COMMAND='{command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=CUDA > logs/eb-log-{{#}}.log'\n")
+        file.write(f"COMMAND='{command} --job-cores={job_cores} --job-max-walltime={max_walltime} --job-backend-config=slurm --trace --accept-eula-for=CUDA --accept-eula-for=Intel-oneAPI > logs/eb-log-{{#}}.log'\n")
         file.write("echo \"Running command: $COMMAND\"\n")
         file.write("\n")
         file.write("eval $COMMAND \n")
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     # first argument is the toolchain
     if len(sys.argv) > 1:
         toolchain = sys.argv[1]
+            
 
     # Define input and script file names
     input_file = f"module_search_results_{toolchain}.txt"
