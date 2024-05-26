@@ -1,5 +1,8 @@
 # Select "foss" to install foss toolchain 2023a
 # Select "intel" to install foss toolchain 2023a
+import sys
+
+
 toolchain = "foss"
 
 # Specify the number of CPU cores per job
@@ -88,6 +91,10 @@ def read_eb_paths(file_path):
 if __name__ == "__main__":
     # Print a message indicating the start of the Slurm script creation process
     print("Creating associated Slurm script...")
+    
+    # first argument is the toolchain
+    if len(sys.argv) > 1:
+        toolchain = sys.argv[1]
 
     # Define input and script file names
     input_file = f"module_search_results_{toolchain}.txt"
