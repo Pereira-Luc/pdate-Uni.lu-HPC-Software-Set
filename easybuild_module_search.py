@@ -252,6 +252,22 @@ def list_all_modules() -> List[str]:
 
 
 if __name__ == "__main__":
+    # check if EasyBuild is installed and loaded
+    try:
+        command = "eb --version"
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        if stderr:
+            print("EasyBuild is not installed or loaded.")
+            print("To load EasyBuild, run the following command:")
+            print("module load tools/EasyBuild/4.9.1")
+            exit(1)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        exit(1)
+    
+    
     # List of modules to search for
     modules = ["GROMACS", "ABAQUS", "OpenFOAM",
                "ParaView", "gnuplot",
