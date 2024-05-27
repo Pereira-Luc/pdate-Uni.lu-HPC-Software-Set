@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 
 # Path to the directory containing the log files
-log_directory = "./eb_logs_intel"
+log_directory = ""
 
 
 def check_installation_logs(directory: str) -> List[Tuple]:
