@@ -133,6 +133,11 @@ This script will install the toolchains and dependencies needed and create many 
    
 Once all the jobs are done you can proceed with the installation of the modules.
 
+If you want to install both toolchains foss and intel add `foss-2023a` inside of easybuild_install_toolchains.sh
+like this 
+```
+EBFILES=("foss-2023a.eb" "intel-2023a.eb")
+```
 WARNING: DO NOT FORCE KILL THE JOBS! THIS WILL CAUSE THE INSTALLATION TO FAIL AND MAY CAUSE CONFLICTS OR ERRORS.
 
 ## Installation of modules with toolchain `intel-2023a`
