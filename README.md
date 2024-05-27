@@ -176,7 +176,10 @@ sbatch install_modules_intel.sh
   python easybuild_validation.py
   ```
 
-  This script will check if all the modules are installed correctly and will output any errors that may have occurred during the installation process.
+  This script will check if all the modules are installed correctly and will output any errors that may have occurred during the installation process. The most common errors are Checksum verification and build failure.
+
+Usually build failures happen because of Checksum errors in dependencies. To fix these errors you need to go to the failed dependency
+and update the checksum to the correct one or replace the corrupted dependency. You can find the path to the dependency inside of the dependency.../.out.
 
 ## Expected Output
 
