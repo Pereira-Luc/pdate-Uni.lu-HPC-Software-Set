@@ -27,41 +27,33 @@ def check_installation_logs(directory: str) -> List[Tuple]:
     error_keywords = {
         "Checksum verification": "Checksum failure",
         "Sanity check failed:": "Sanity check failure",
-        "make check": "Make check failure"
+        "make check": "Make check failure",
+        "build failed": "Build Error"
     }
 
-    # Iterate over each log file to analyze its content
     for log_file in log_files:
-        # Extract the module name from the log file name
         module_name = os.path.basename(log_file).rsplit('-', 1)[0]
+        status = "valid"  # Assume the installation is valid unless an error is found
+        error_summary = []  # Store summaries of specific error messages
 
-        # Assume the installation is valid unless an error is found
-        status = "valid"
-
-        # Store summaries of specific error messages
-        error_summary = []
-
-        # Open the log file and read its lines
         with open(log_file, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
-
-            # Flag to check if a specific error keyword was found
-            found_specific_error = False
-
-            # Check each line in the log file for error keywords
-            for line in lines:
+            for line in file:
+                found_specific_error = False
                 for key, summary in error_keywords.items():
                     if key in line:
+                        print(f"Error in {module_name}: {line.strip()}")
                         status = "failed"
                         if summary not in error_summary:
                             error_summary.append(summary)
                         found_specific_error = True
+                        break  # Stop checking after the first match
 
-            # Append a general error summary if no specific keywords were found in any error line
-            if status == "failed" and not found_specific_error:
-                error_summary.append("Other installation error")
+                if not found_specific_error and "error" in line.lower():
+                    print(f"Error in {module_name}: {line.strip()}")
+                    status = "failed"
+                    if "Other installation error" not in error_summary:
+                        error_summary.append("Other installation error")
 
-        # Append the results for the current log file (module name, status, error summaries)
         results.append((module_name, status, error_summary))
 
     # Sort results by module name
