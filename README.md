@@ -235,6 +235,7 @@ Before starting make sure to update easybuild (Tested on 4.9.1) check [Installin
     cd pdate-Uni.lu-HPC-Software-Set
     sbatch easybuild_install_toolchains.sh
     ```
+    
 3. **While this is installed you can start:**
     ```bash
     python3 easybuild_module_search.py
