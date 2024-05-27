@@ -90,7 +90,7 @@ salloc -p interactive --qos debug --reservation=hpc_software_5d07 --time=2:00:00
 ```
 3. Clone the repository:
 ```
-git clone git@github.com:Pereira-Luc/pdate-Uni.lu-HPC-Software-Set.git
+git clone https://github.com/Pereira-Luc/pdate-Uni.lu-HPC-Software-Set.git 
 ```
 
 ## Installing/Upgrading EasyBuild
