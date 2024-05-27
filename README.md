@@ -223,8 +223,42 @@ Due to multiple dependencies and the availability of the cluster nodes, this cou
 4. Repeat the previous commands.
 
 
-## Execution example:
+## Example: Execution Installing Intel Toolchain & Modules:
+Before starting make sure to update easybuild (Tested on 4.9.1) check [Installing/Upgrading EasyBuild](#installingupgrading-easybuild)
 
+1. **Clone the Repository:**
+   ```bash
+    git clone https://github.com/Pereira-Luc/pdate-Uni.lu-HPC-Software-Set.git
+   ```
+2. **Go into the cloned folder and install toolchain:**
+    ```bash
+    cd pdate-Uni.lu-HPC-Software-Set
+    sbatch easybuild_install_toolchains.sh
+    ```
+3. **While this is installed you can start:**
+    ```bash
+    python3 easybuild_module_search.py
+    ```
+This will create a file called: `install_modules_intel.sh`
+Inside there is the path to easybuild install files for tools that use intel-2023a toolchain.
+3. **Now create the slurm script**
+    ```bash
+      pyton3 easybuild_create_slurm.py
+    ```
+Now we need to check if the installation of the toolchain is finished you can do that with `sq`
 
+4. **Once the toolchain is installed we run:**
+    ```bash
+    sbatch install_modules_intel.sh
+    ```
 
+This will take a while once to finish. 
+
+5. **Once finished**
+    ```bash
+    python3 easybuild_validation.py -d ./
+    ```
+
+This will show you what was successful and what failed. In the case that some stuff failed 
+you can try and fix it a small explanation of most current failure can be found under validation
 
