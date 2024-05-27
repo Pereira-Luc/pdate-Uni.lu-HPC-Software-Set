@@ -92,6 +92,10 @@ salloc -p interactive --qos debug --reservation=hpc_software_5d07 --time=2:00:00
 ```
 git clone https://github.com/Pereira-Luc/pdate-Uni.lu-HPC-Software-Set.git 
 ```
+4. Change into the directory:
+```
+cd pdate-Uni.lu-HPC-Software-Set
+```
 
 ## Installing/Upgrading EasyBuild
 
@@ -144,14 +148,14 @@ WARNING: DO NOT FORCE KILL THE JOBS! THIS WILL CAUSE THE INSTALLATION TO FAIL AN
 
 1. We are going to start with the installation of the `intel-2023` toolchain first.\
    Run the module search script using the following command 
-   (depending on your python configuration you may need to use `python3` for the following sections):
+   (depending on your python configuration you may need to use `python` for the following sections):
 ```
-python easybuild_module_search.py
+python3 easybuild_module_search.py
 ```
 
 1.1. Optionally You can add the specific toolchain as a parameter like this( default = intel ):
 ```
-python easybuild_module_search.py intel
+python3 easybuild_module_search.py intel
 ```
 
 2. Follow the on-screen prompts to specify the desired version of modules that have multiple versions available. 
@@ -161,11 +165,11 @@ python easybuild_module_search.py intel
 
 4. Run the slurm creation script using the following command:
 ```
-python easybuild_create_slurm.py
+python3 easybuild_create_slurm.py
 ```
 4.1. Optionally You can add the specific toolchain as a parameter like this (default = intel):
 ```
-python easybuild_create_slurm.py intel
+python3 easybuild_create_slurm.py intel
 ```
 
 5. Run the newly created slurm script on the cluster to install the found modules using the following command:
@@ -187,7 +191,7 @@ sbatch install_modules_intel.sh
    [`easybuild_validation.py`](easybuild_validation.py).
 2. Afterwards, validate by running the following command:
   ```
-  python easybuild_validation.py
+  python3 easybuild_validation.py
   ```
 
   This script will check if all the modules are installed correctly and will output any errors that may have occurred during the installation process. The most common errors are Checksum verification and build failure.
