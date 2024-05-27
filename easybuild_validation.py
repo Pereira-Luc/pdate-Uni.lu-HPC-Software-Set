@@ -41,7 +41,7 @@ def check_installation_logs(directory: str) -> List[Tuple]:
                 found_specific_error = False
                 for key, summary in error_keywords.items():
                     if key in line:
-                        print(f"Error in {module_name}: {line.strip()}")
+                        #print(f"Error in {module_name}: {line.strip()}")
                         status = "failed"
                         if summary not in error_summary:
                             error_summary.append(summary)
@@ -49,7 +49,7 @@ def check_installation_logs(directory: str) -> List[Tuple]:
                         break  # Stop checking after the first match
 
                 if not found_specific_error and "error" in line.lower():
-                    print(f"Error in {module_name}: {line.strip()}")
+                    #print(f"Error in {module_name}: {line.strip()}")
                     status = "failed"
                     if "Other installation error" not in error_summary:
                         error_summary.append("Other installation error")
