@@ -149,6 +149,11 @@ WARNING: DO NOT FORCE KILL THE JOBS! THIS WILL CAUSE THE INSTALLATION TO FAIL AN
 python easybuild_module_search.py
 ```
 
+1.1. Optionally You can add the specific toolchain as a parameter like this( default = intel ):
+```
+python easybuild_module_search.py intel
+```
+
 2. Follow the on-screen prompts to specify the desired version of modules that have multiple versions available. 
    For our purposes you can choose each version arbitrarily.
 
@@ -157,6 +162,10 @@ python easybuild_module_search.py
 4. Run the slurm creation script using the following command:
 ```
 python easybuild_create_slurm.py
+```
+4.1. Optionally You can add the specific toolchain as a parameter like this (default = intel):
+```
+python easybuild_create_slurm.py intel
 ```
 
 5. Run the newly created slurm script on the cluster to install the found modules using the following command:
@@ -212,6 +221,9 @@ Due to multiple dependencies and the availability of the cluster nodes, this cou
    and the log folder `eb_logs_independent`.
 3. Do not forget to set the right log directory path in [`easybuild_validation.py`](easybuild_validation.py).
 4. Repeat the previous commands.
+
+
+## Execution example:
 
 
 
